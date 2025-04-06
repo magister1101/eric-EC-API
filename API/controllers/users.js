@@ -4,6 +4,24 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
+//update utils
+const performUpdate = (id, updateFields, res) => {
+    User.findByIdAndUpdate(id, updateFields, { new: true })
+        .then((updatedUser) => {
+            if (!updatedUser) {
+                return ({ message: "User not found" });
+            }
+            return updatedUser;
+
+        })
+        .catch((err) => {
+            return ({
+                message: "Error in updating user",
+                error: err
+            });
+        })
+};
+
 exports.getUser = async (req, res) => {
     try {
         const { query, isArchived } = req.query;
@@ -55,7 +73,24 @@ exports.getUser = async (req, res) => {
         console.error(error.message);
         res.status(500).json('error in getUser');
     }
-}
+};
+
+exports.getViewer = async (req, res) => {
+    try {
+        User.findOne({ _id: req.userData.userId })
+            .exec()
+            .then(user => {
+                return res.status(200).json(user);
+            })
+    }
+    catch (error) {
+        console.error('Error retrieving user:', error);
+        return res.status(500).json({
+            message: "Error in retrieving user",
+            error: error.message || error,
+        });
+    }
+};
 
 exports.createUser = async (req, res) => {
     try {
@@ -97,7 +132,7 @@ exports.createUser = async (req, res) => {
             error: error.message || error,
         });
     }
-}
+};
 
 exports.loginUser = async (req, res, next) => {
     try {
@@ -147,6 +182,32 @@ exports.loginUser = async (req, res, next) => {
         console.error('Error logging in user:', error);
         return res.status(500).json({
             message: "Error in logging in user",
+            error: error.message || error,
+        });
+    }
+};
+
+exports.updateUser = async (req, res, next) => {
+    try {
+        const userId = req.params.userId;
+        const updateFields = req.body;
+
+        if (updateFields.password) {
+            const bcrypt = require('bcrypt');
+            const saltRounds = 10;
+
+            const hashedPassword = await bcrypt.hash(updateFields.password, saltRounds);
+            updateFields.password = hashedPassword;
+        }
+        const updatedUser = performUpdate(userId, updateFields, res);
+        return res.status(200).json(updatedUser)
+
+
+    }
+    catch (error) {
+        console.error('Error updating user:', error);
+        return res.status(500).json({
+            message: "Error in updating user",
             error: error.message || error,
         });
     }
