@@ -80,7 +80,10 @@ exports.getViewer = async (req, res) => {
         User.findOne({ _id: req.userData.userId })
             .exec()
             .then(user => {
-                return res.status(200).json(user);
+                return res.status(200).json({
+                    valid: true,
+                    user: user
+                });
             })
     }
     catch (error) {
