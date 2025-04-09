@@ -2,6 +2,23 @@ const mongoose = require('mongoose');
 const Card = require('../models/card');
 const user = require('../models/user');
 
+const performUpdate = (id, updateFields, res) => {
+    Card.findByIdAndUpdate(id, updateFields, { new: true })
+        .then((updatedData) => {
+            if (!updatedData) {
+                return ({ message: "Data not found" });
+            }
+            return updatedData;
+
+        })
+        .catch((err) => {
+            return ({
+                message: "Error in updating Data",
+                error: err
+            });
+        })
+};
+
 exports.getCard = async (req, res) => {
     try {
         const { query, isArchived, game } = req.query;
@@ -90,5 +107,21 @@ exports.createCard = async (req, res) => {
     catch (error) {
         console.error(error.message);
         res.status(500).json('error in createCard');
+    }
+}
+
+exports.updateCard = async (req, res) => {
+    try {
+        console.log(req.body);
+        const cardId = req.params.cardId;
+        const updateFields = req.body;
+
+        const updatedCard = performUpdate(cardId, updateFields, res);
+        return res.status(200).json(updatedCard)
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in updateCard');
     }
 }

@@ -11,6 +11,7 @@ router.get('/', cardsController.getCard)
 //POST
 
 router.post('/create', cardsController.createCard)
+router.post('/update/:cardId', cardsController.updateCard)
 
 //PUT
 

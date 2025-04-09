@@ -7,16 +7,16 @@ const User = require('../models/user');
 //update utils
 const performUpdate = (id, updateFields, res) => {
     User.findByIdAndUpdate(id, updateFields, { new: true })
-        .then((updatedUser) => {
-            if (!updatedUser) {
-                return ({ message: "User not found" });
+        .then((updatedData) => {
+            if (!updatedData) {
+                return ({ message: "Data not found" });
             }
-            return updatedUser;
+            return updatedData;
 
         })
         .catch((err) => {
             return ({
-                message: "Error in updating user",
+                message: "Error in updating Data",
                 error: err
             });
         })
