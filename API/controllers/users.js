@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 
-//update utils
 const performUpdate = (id, updateFields, res) => {
     User.findByIdAndUpdate(id, updateFields, { new: true })
         .then((updatedData) => {

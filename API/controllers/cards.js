@@ -108,7 +108,7 @@ exports.createCard = async (req, res) => {
         console.error(error.message);
         res.status(500).json('error in createCard');
     }
-}
+};
 
 exports.updateCard = async (req, res) => {
     try {
@@ -124,4 +124,5 @@ exports.updateCard = async (req, res) => {
         console.error(error.message);
         res.status(500).json('error in updateCard');
     }
-}
+};
+
