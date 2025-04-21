@@ -2,6 +2,29 @@ const mongoose = require('mongoose');
 
 const Expansion = require('../models/expansion');
 
+const performUpdate = (id, updateFields, res, updateType) => {
+    if (updateType === 'expansion') {
+        Expansion.findByIdAndUpdate(id, updateFields, { new: true })
+            .then((updatedData) => {
+                if (!updatedData) {
+                    return ({ message: "Data not found" });
+                }
+                return updatedData;
+
+            })
+            .catch((err) => {
+                return ({
+                    message: "Error in updating Data",
+                    error: err
+                });
+            })
+    }
+    else {
+        console.log("Invalid updateType");
+    }
+
+};
+
 exports.getExpansion = async (req, res) => {
     try {
         const { query, isArchived, game } = req.query;
@@ -68,7 +91,7 @@ exports.createExpansion = async (req, res) => {
         const id = new mongoose.Types.ObjectId();
         const { game, name, code, file, } = req.body;
 
-        const expansin = new Expansion({
+        const expansion = new Expansion({
             _id: id,
             game,
             name,
@@ -76,11 +99,27 @@ exports.createExpansion = async (req, res) => {
             file,
         });
 
-        const saveExpansion = await expansin.save();
+        const saveExpansion = await expansion.save();
         return res.status(201).json(saveExpansion);
     }
     catch (error) {
         console.error(error.message);
         res.status(500).json('error in createExpansion');
+    }
+};
+
+exports.updateExpansion = async (req, res) => {
+    try {
+
+        const expansionId = req.params.id;
+        const updateFields = req.body;
+
+        const updatedCard = performUpdate(expansionId, updateFields, res, 'expansion');
+        return res.status(200).json(updatedCard)
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in updateCard');
     }
 };
