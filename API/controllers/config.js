@@ -1,10 +1,27 @@
 const mongoose = require('mongoose');
 
 const Expansion = require('../models/expansion');
+const Rarity = require('../models/rarity');
 
 const performUpdate = (id, updateFields, res, updateType) => {
     if (updateType === 'expansion') {
         Expansion.findByIdAndUpdate(id, updateFields, { new: true })
+            .then((updatedData) => {
+                if (!updatedData) {
+                    return ({ message: "Data not found" });
+                }
+                return updatedData;
+
+            })
+            .catch((err) => {
+                return ({
+                    message: "Error in updating Data",
+                    error: err
+                });
+            })
+    }
+    else if (updateType === 'rarity') {
+        Rarity.findByIdAndUpdate(id, updateFields, { new: true })
             .then((updatedData) => {
                 if (!updatedData) {
                     return ({ message: "Data not found" });
@@ -115,6 +132,107 @@ exports.updateExpansion = async (req, res) => {
         const updateFields = req.body;
 
         const updatedCard = performUpdate(expansionId, updateFields, res, 'expansion');
+        return res.status(200).json(updatedCard)
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in updateCard');
+    }
+};
+
+
+//rarity
+
+exports.getRarity = async (req, res) => {
+    try {
+        const { query, isArchived, game } = req.query;
+
+        const escapeRegex = (value) => {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        };
+
+        let searchCriteria = {};
+        const queryConditions = [];
+
+        if (query) {
+            const escaped = escapeRegex(query);
+            const orConditions = [];
+
+            if (mongoose.Types.ObjectId.isValid(query)) {
+                orConditions.push({ _id: query });
+            }
+
+            orConditions.push(
+                { name: { $regex: escaped, $options: 'i' } },
+                { code: { $regex: escaped, $options: 'i' } },
+            )
+
+            queryConditions.push({ $or: orConditions });
+        }
+
+        if (game) {
+            const escaped = escapeRegex(game);
+            const orConditions = [];
+
+            orConditions.push(
+                { game: { $regex: escaped, $options: 'i' } },
+            )
+
+            queryConditions.push({ $or: orConditions });
+        }
+
+
+        if (isArchived) {
+            const isArchivedBool = isArchived === 'true';
+            queryConditions.push({ isArchived: isArchivedBool });
+        }
+
+        if (queryConditions.length > 0) {
+            searchCriteria = { $and: queryConditions };
+        }
+
+        const rarities = await Rarity.find(searchCriteria)
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json(rarities);
+
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in getRarity');
+    }
+};
+
+exports.createRarity = async (req, res) => {
+    try {
+        const id = new mongoose.Types.ObjectId();
+        const { game, name, code, } = req.body;
+
+        const rarity = new Rarity({
+            _id: id,
+            game,
+            name,
+            code,
+        });
+
+        const saveRarity = await rarity.save();
+        return res.status(201).json(saveRarity);
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in createRarity');
+    }
+};
+
+exports.updateRarity = async (req, res) => {
+    try {
+
+        const rarityId = req.params.id;
+        const updateFields = req.body;
+
+        const updatedCard = performUpdate(rarityId, updateFields, res, 'rarity');
         return res.status(200).json(updatedCard)
 
     }
