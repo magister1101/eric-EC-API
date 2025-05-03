@@ -12,6 +12,9 @@ router.get('/rarity/get', configController.getRarity)
 //EXPANSION
 router.get('/expansion/get', configController.getExpansion)
 
+//GAME
+router.get('/game/get', configController.getGame)
+
 
 //POST
 //RARITY
@@ -21,6 +24,10 @@ router.post('/rarity/update/:id', configController.updateRarity)
 //EXPANSION
 router.post('/expansion/create', configController.createExpansion)
 router.post('/expansion/update/:id', configController.updateExpansion)
+
+//GAME
+router.post('/game/create', configController.createGame)
+router.post('/game/update/:id', configController.updateGame)
 
 
 //PUT
