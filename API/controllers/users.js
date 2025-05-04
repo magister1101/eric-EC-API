@@ -189,6 +189,59 @@ exports.loginUser = async (req, res, next) => {
     }
 };
 
+exports.loginAdmin = async (req, res, next) => {
+    try {
+        User.find({ username: req.body.username })
+            .exec()
+            .then(user => {
+                if (user.length < 1) {
+                    return res.status(401).json({
+                        message: 'Username does not exist'
+                    });
+                }
+                if (!user[0].isArchived && user[0].isAdmin) {
+                    bcrypt.compare(req.body.password, user[0].password, (err, result) => {
+                        if (err) {
+                            return res.status(401).json({
+                                message: 'Incorrect Password'
+                            });
+                        }
+                        if (result) {
+                            const token = jwt.sign({
+                                userId: user[0]._id,
+                                username: user[0].username,
+                            },
+                                process.env.JWT_SECRET,
+                                {
+                                    expiresIn: "24h"
+                                }
+                            )
+
+                            return res.status(200).json({
+                                message: 'Login Successfully',
+                                token: token,
+                            });
+                        }
+                        return res.status(401).json({
+                            message: 'Login Failed'
+                        });
+                    })
+                } else {
+                    return res.status(401).json({
+                        message: 'Auth Failed'
+                    });
+                }
+            })
+    }
+    catch (error) {
+        console.error('Error logging in user:', error);
+        return res.status(500).json({
+            message: "Error in logging in user",
+            error: error.message || error,
+        });
+    }
+};
+
 exports.updateUser = async (req, res, next) => {
     try {
         const userId = req.params.userId;

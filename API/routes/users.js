@@ -12,7 +12,8 @@ router.get('/viewer', authentication, UsersController.getViewer)
 //POST
 
 router.post('/create', UsersController.createUser)
-router.post('/login', UsersController.loginUser);
+router.post('/loginUser', UsersController.loginUser);
+router.post('/loginAdmin', UsersController.loginAdmin);
 router.post('/update/:userId', UsersController.updateUser);
 
 //PUT
