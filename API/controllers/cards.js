@@ -4,7 +4,7 @@ const user = require('../models/user');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const puppeteer = require('puppeteer-core');
-const chromeLambda = require('chrome-aws-lambda');
+const chrome = require('chrome-aws-lambda');
 
 
 const performUpdate = (id, updateFields, res) => {
@@ -207,29 +207,34 @@ exports.EXscrapePrice = async (req, res) => {
 };
 
 async function scrapePrice(url) {
-    const browser = await puppeteer.launch({
-        args: chromeLambda.args,
-        executablePath: await chromeLambda.executablePath,
-        headless: chromeLambda.headless,
-    });
+    let browser = null;
+    try {
+        browser = await puppeteer.launch({
+            args: chrome.args,
+            executablePath: await chrome.executablePath,
+            headless: chrome.headless,
+        });
 
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-    // Scraping price using Cheerio and Puppeteer
-    const content = await page.content();
-    const $ = cheerio.load(content);
+        const content = await page.content();
+        const $ = require('cheerio').load(content);
 
-    // Example: scraping price and stock
-    const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
-    const stockText = $('label[for="flexRadioDefault5"]').text().trim();
+        const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
+        const stockText = $('label[for="flexRadioDefault5"]').text().trim();
 
-    const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
-    const stock = parseInt(stockText.replace(/\D/g, ''), 10) || 0;
+        const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+        const stock = parseInt(stockText.replace(/\D/g, '')) || 0;
 
-    await browser.close();
-    return { price, stock };
-}
+        return { price, stock };
+    } catch (err) {
+        console.error('Puppeteer scrape error:', err.message);
+        return { price: 0, stock: 0 };
+    } finally {
+        if (browser) await browser.close();
+    }
+};
 
 exports.scrapePrice = async (req, res) => {
     const { url } = req.body;
