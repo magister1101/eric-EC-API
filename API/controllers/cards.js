@@ -3,6 +3,7 @@ const Card = require('../models/card');
 const user = require('../models/user');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 
 const performUpdate = (id, updateFields, res) => {
     Card.findByIdAndUpdate(id, updateFields, { new: true })
@@ -180,7 +181,7 @@ exports.EXscrapePrice = async (req, res) => {
     res.json({ price: priceConverted, stock });
 };
 
-exports.scrapePrice = async (req, res) => {
+exports.EXscrapePrice = async (req, res) => {
     const { url } = req.body;
     const apiKey = process.env.SCRAPER_API_KEY; // Get one for free at scraperapi.com
 
@@ -202,4 +203,48 @@ exports.scrapePrice = async (req, res) => {
         res.status(500).json({ error: 'Failed to scrape price' });
     }
 };
+
+exports.scrapePrice = async (req, res) => {
+    const { url } = req.body;
+
+    if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+    }
+
+    try {
+        const browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
+
+        const page = await browser.newPage();
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 0 });
+
+        // Scrape price
+        await page.waitForSelector('h4.fw-bold.d-inline-block', { timeout: 5000 });
+        const priceText = await page.$eval('h4.fw-bold.d-inline-block', el => el.textContent.trim());
+        const rawPrice = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+        const convertedPrice = rawPrice * 0.5;
+
+        // Scrape stock
+        let stock = null;
+        try {
+            const stockText = await page.$eval('#cart_sell_zaiko_pc', el => el.textContent.trim());
+            const stockMatch = stockText.match(/\d+/);
+            stock = stockMatch ? parseInt(stockMatch[0], 10) : null;
+        } catch (err) {
+            console.warn('Stock element not found:', err.message);
+        }
+
+        await browser.close();
+
+        return res.json({
+            price: convertedPrice,
+            stock,
+        });
+    } catch (error) {
+        console.error('Puppeteer scrape error:', error.message);
+        return res.status(500).json({ error: 'Scraping failed' });
+    }
+};
+
 
