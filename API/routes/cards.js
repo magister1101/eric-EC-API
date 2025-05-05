@@ -12,6 +12,7 @@ router.get('/', cardsController.getCard)
 
 router.post('/create', cardsController.createCard)
 router.post('/update/:cardId', cardsController.updateCard)
+router.post('/scrapePrice', cardsController.scrapePrice)
 
 //PUT
 

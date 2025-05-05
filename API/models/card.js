@@ -12,8 +12,11 @@ const cardSchema = mongoose.Schema({
     series: { type: String, required: true },
     rarity: { type: String, required: true },
 
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
+    price: { type: Number },
+    quantity: { type: Number },
+
+    isPreorder: { type: Boolean, default: false },
+    url: { type: String },
 
     file: { type: String },
     description: { type: String },

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 const user = require('../models/user');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 const performUpdate = (id, updateFields, res) => {
     Card.findByIdAndUpdate(id, updateFields, { new: true })
@@ -85,7 +87,7 @@ exports.getCard = async (req, res) => {
 exports.createCard = async (req, res) => {
     try {
         const cardId = new mongoose.Types.ObjectId();
-        const { expansion, game, name, code, series, rarity, price, quantity, file, description } = req.body;
+        const { expansion, game, name, code, series, rarity, price, quantity, file, description, isPreorder, url } = req.body;
 
         const card = new Card({
             _id: cardId,
@@ -97,6 +99,8 @@ exports.createCard = async (req, res) => {
             rarity,
             price,
             quantity,
+            isPreorder,
+            url,
             file,
             description,
         });
@@ -126,3 +130,48 @@ exports.updateCard = async (req, res) => {
     }
 };
 
+async function scrapePrice(url) {
+    try {
+        const { data } = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0',
+            },
+        });
+
+        const $ = cheerio.load(data);
+
+        // Get price
+        const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
+        const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+
+        // Get stock quantity
+        const stockText = $('#cart_sell_zaiko_pc').text();
+        const stockMatch = stockText.match(/在庫\s*:\s*(\d+)\s*点/);
+        const stock = stockMatch ? parseInt(stockMatch[1], 10) : 0;
+
+        return {
+            price: isNaN(price) ? null : price,
+            stock: isNaN(stock) ? 0 : stock
+        };
+
+    } catch (error) {
+        console.error('Error scraping:', error.message);
+        return { price: null, stock: 0 };
+    }
+}
+
+exports.scrapePrice = async (req, res) => {
+    const { url } = req.body;
+
+    if (!url) return res.status(400).json({ error: 'URL is required' });
+
+    const { price, stock } = await scrapePrice(url);
+
+    if (price === null) {
+        return res.status(500).json({ error: 'Failed to fetch price' });
+    }
+
+    const priceConverted = price * 0.5;
+
+    res.json({ price: priceConverted, stock });
+};
