@@ -2,9 +2,8 @@ const mongoose = require('mongoose');
 const Card = require('../models/card');
 const user = require('../models/user');
 const axios = require('axios');
+const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-core');
-const chrome = require('chrome-aws-lambda');
 
 
 const performUpdate = (id, updateFields, res) => {
@@ -207,19 +206,18 @@ exports.EXscrapePrice = async (req, res) => {
 };
 
 async function scrapePrice(url) {
-    let browser = null;
+    let browser;
     try {
         browser = await puppeteer.launch({
-            args: chrome.args,
-            executablePath: await chrome.executablePath,
-            headless: chrome.headless,
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
         const page = await browser.newPage();
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-        const content = await page.content();
-        const $ = require('cheerio').load(content);
+        const html = await page.content();
+        const $ = cheerio.load(html);
 
         const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
         const stockText = $('label[for="flexRadioDefault5"]').text().trim();
@@ -230,7 +228,7 @@ async function scrapePrice(url) {
         return { price, stock };
     } catch (err) {
         console.error('Puppeteer scrape error:', err.message);
-        return { price: 0, stock: 0 };
+        return { price: null, stock: null, error: err.message };
     } finally {
         if (browser) await browser.close();
     }
