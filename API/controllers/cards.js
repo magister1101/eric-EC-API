@@ -196,8 +196,11 @@ exports.EXscrapePrice = async (req, res) => {
         const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
         const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
 
+        const stockText = $('label[for="flexRadioDefault5"]').text().trim();
+        const stock = parseInt(stockText.replace(/\D/g, '')) || 0;
+
         const priceConverted = (price || 0) * 0.5;
-        res.json({ price: priceConverted });
+        res.json({ price: priceConverted, stock });
 
     } catch (error) {
         console.error('Scrape error:', error.message);
@@ -210,19 +213,21 @@ async function scrapePrice(url) {
     try {
         browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
 
         const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 0 });
 
         const html = await page.content();
         const $ = cheerio.load(html);
 
+        // Price from <h4 class="fw-bold d-inline-block">
         const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
-        const stockText = $('label[for="flexRadioDefault5"]').text().trim();
-
         const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+
+        // Stock from <label for="flexRadioDefault5" id="cart_sell_zaiko_pc">
+        const stockText = $('#cart_sell_zaiko_pc').text().trim();
         const stock = parseInt(stockText.replace(/\D/g, '')) || 0;
 
         return { price, stock };
