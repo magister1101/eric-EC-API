@@ -1,9 +1,7 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 const user = require('../models/user');
-const axios = require('axios');
-const puppeteer = require('puppeteer');
-const cheerio = require('cheerio');
+const { scrapePrice, scrapePriceScraperAPI } = require('../utils/scraperUtils');
 
 
 const performUpdate = (id, updateFields, res) => {
@@ -132,131 +130,28 @@ exports.updateCard = async (req, res) => {
     }
 };
 
-async function EXscrapePrice(url) {
-    try {
-        const { data } = await axios.get(url, {
-            headers: {
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Referer': url,
-            },
-        });
-
-        const $ = cheerio.load(data);
-
-        // Get price
-        const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
-        const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-
-        // Get stock quantity
-        const stockText = $('#cart_sell_zaiko_pc').text();
-        const stockMatch = stockText.match(/在庫\s*:\s*(\d+)\s*点/);
-        const stock = stockMatch ? parseInt(stockMatch[1], 10) : 0;
-
-        return {
-            price: isNaN(price) ? null : price,
-            stock: isNaN(stock) ? 0 : stock
-        };
-
-    } catch (error) {
-        console.error('Error scraping:', error.message);
-        return { price: null, stock: 0 };
-    }
-}
-
-exports.EXscrapePrice = async (req, res) => {
-    const { url } = req.body;
-
-    if (!url) return res.status(400).json({ error: 'URL is required' });
-
-    const { price, stock } = await scrapePrice(url);
-
-    if (price === null) {
-        return res.status(500).json({ error: 'Failed to fetch price' });
-    }
-
-    const priceConverted = price * 0.5;
-
-    res.json({ price: priceConverted, stock });
-};
-
-exports.EXscrapePrice = async (req, res) => {
-    const { url } = req.body;
-    const apiKey = process.env.SCRAPER_API_KEY; // Get one for free at scraperapi.com
-
-    if (!url) return res.status(400).json({ error: 'URL is required' });
-
-    try {
-        const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(url)}`;
-        const { data } = await axios.get(proxyUrl);
-
-        const $ = cheerio.load(data);
-        const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
-        const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-
-        const stockText = $('label[for="flexRadioDefault5"]').text().trim();
-        const stock = parseInt(stockText.replace(/\D/g, '')) || 0;
-
-        const priceConverted = (price || 0) * 0.5;
-        res.json({ price: priceConverted, stock });
-
-    } catch (error) {
-        console.error('Scrape error:', error.message);
-        res.status(500).json({ error: 'Failed to scrape price' });
-    }
-};
-
-async function scrapePrice(url) {
-    let browser;
-    try {
-        browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
-
-        const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 0 });
-
-        const html = await page.content();
-        const $ = cheerio.load(html);
-
-        // Price from <h4 class="fw-bold d-inline-block">
-        const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
-        const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
-
-        // Stock from <label for="flexRadioDefault5" id="cart_sell_zaiko_pc">
-        const stockText = $('#cart_sell_zaiko_pc').text().trim();
-        const stock = parseInt(stockText.replace(/\D/g, '')) || 0;
-
-        return { price, stock };
-    } catch (err) {
-        console.error('Puppeteer scrape error:', err.message);
-        return { price: null, stock: null, error: err.message };
-    } finally {
-        if (browser) await browser.close();
-    }
-};
 
 exports.scrapePrice = async (req, res) => {
-    const { url } = req.body;
-
-    if (!url) {
-        return res.status(400).json({ error: 'URL is required' });
-    }
-
     try {
+        const { url } = req.body;
+
+        if (!url) return res.status(400).json({ error: 'URL is required' });
+
         const { price, stock } = await scrapePrice(url);
-        if (price && stock >= 0) {
-            res.json({ price, stock });
-        } else {
-            res.status(500).json({ error: 'Failed to scrape valid data' });
+
+        if (price === null) {
+            return res.status(500).json({ error: 'Failed to fetch price' });
         }
-    } catch (error) {
-        console.error('Error scraping:', error.message);
-        res.status(500).json({ error: 'Error scraping the URL' });
+
+        const priceConverted = price * 0.5;
+
+        return res.json({ price: priceConverted, stock });
     }
+    catch (error) {
+        console.error(error.message);
+        return res.status(500).json('error in scrapePrice');
+    }
+
 };
 
 
