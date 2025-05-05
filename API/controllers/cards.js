@@ -3,7 +3,9 @@ const Card = require('../models/card');
 const user = require('../models/user');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromeLambda = require('chrome-aws-lambda');
+
 
 const performUpdate = (id, updateFields, res) => {
     Card.findByIdAndUpdate(id, updateFields, { new: true })
@@ -131,7 +133,7 @@ exports.updateCard = async (req, res) => {
     }
 };
 
-async function scrapePrice(url) {
+async function EXscrapePrice(url) {
     try {
         const { data } = await axios.get(url, {
             headers: {
@@ -204,6 +206,31 @@ exports.EXscrapePrice = async (req, res) => {
     }
 };
 
+async function scrapePrice(url) {
+    const browser = await puppeteer.launch({
+        args: chromeLambda.args,
+        executablePath: await chromeLambda.executablePath,
+        headless: chromeLambda.headless,
+    });
+
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+    // Scraping price using Cheerio and Puppeteer
+    const content = await page.content();
+    const $ = cheerio.load(content);
+
+    // Example: scraping price and stock
+    const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
+    const stockText = $('label[for="flexRadioDefault5"]').text().trim();
+
+    const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+    const stock = parseInt(stockText.replace(/\D/g, ''), 10) || 0;
+
+    await browser.close();
+    return { price, stock };
+}
+
 exports.scrapePrice = async (req, res) => {
     const { url } = req.body;
 
@@ -212,38 +239,15 @@ exports.scrapePrice = async (req, res) => {
     }
 
     try {
-        const browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
-
-        const page = await browser.newPage();
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 0 });
-
-        // Scrape price
-        await page.waitForSelector('h4.fw-bold.d-inline-block', { timeout: 5000 });
-        const priceText = await page.$eval('h4.fw-bold.d-inline-block', el => el.textContent.trim());
-        const rawPrice = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
-        const convertedPrice = rawPrice * 0.5;
-
-        // Scrape stock
-        let stock = null;
-        try {
-            const stockText = await page.$eval('#cart_sell_zaiko_pc', el => el.textContent.trim());
-            const stockMatch = stockText.match(/\d+/);
-            stock = stockMatch ? parseInt(stockMatch[0], 10) : null;
-        } catch (err) {
-            console.warn('Stock element not found:', err.message);
+        const { price, stock } = await scrapePrice(url);
+        if (price && stock >= 0) {
+            res.json({ price, stock });
+        } else {
+            res.status(500).json({ error: 'Failed to scrape valid data' });
         }
-
-        await browser.close();
-
-        return res.json({
-            price: convertedPrice,
-            stock,
-        });
     } catch (error) {
-        console.error('Puppeteer scrape error:', error.message);
-        return res.status(500).json({ error: 'Scraping failed' });
+        console.error('Error scraping:', error.message);
+        res.status(500).json({ error: 'Error scraping the URL' });
     }
 };
 
