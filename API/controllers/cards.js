@@ -164,7 +164,7 @@ async function scrapePrice(url) {
     }
 }
 
-exports.scrapePrice = async (req, res) => {
+exports.EXscrapePrice = async (req, res) => {
     const { url } = req.body;
 
     if (!url) return res.status(400).json({ error: 'URL is required' });
@@ -179,3 +179,27 @@ exports.scrapePrice = async (req, res) => {
 
     res.json({ price: priceConverted, stock });
 };
+
+exports.scrapePrice = async (req, res) => {
+    const { url } = req.body;
+    const apiKey = process.env.SCRAPER_API_KEY; // Get one for free at scraperapi.com
+
+    if (!url) return res.status(400).json({ error: 'URL is required' });
+
+    try {
+        const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(url)}`;
+        const { data } = await axios.get(proxyUrl);
+
+        const $ = cheerio.load(data);
+        const priceText = $('h4.fw-bold.d-inline-block').first().text().trim();
+        const price = parseFloat(priceText.replace(/[^0-9.]/g, ''));
+
+        const priceConverted = (price || 0) * 0.5;
+        res.json({ price: priceConverted });
+
+    } catch (error) {
+        console.error('Scrape error:', error.message);
+        res.status(500).json({ error: 'Failed to scrape price' });
+    }
+};
+
