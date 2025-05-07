@@ -10,6 +10,7 @@ const dotenv = require('dotenv').config();
 //routes link
 const userRoutes = require('./API/routes/users');
 const cardRoutes = require('./API/routes/cards');
+const otherProductRoutes = require('./API/routes/otherProducts');
 const configRoutes = require('./API/routes/config');
 
 
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
 // routes
 app.use('/users', userRoutes);
 app.use('/cards', cardRoutes);
+app.use('/otherProducts', otherProductRoutes);
 app.use('/config', configRoutes);
 
 

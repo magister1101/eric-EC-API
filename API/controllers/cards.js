@@ -23,7 +23,7 @@ const performUpdate = (id, updateFields, res) => {
 
 exports.getCard = async (req, res) => {
     try {
-        const { query, isArchived, game } = req.query;
+        const { query, isArchived, game, isPreorder } = req.query;
 
         const escapeRegex = (value) => {
             return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -65,6 +65,11 @@ exports.getCard = async (req, res) => {
         if (isArchived) {
             const isArchivedBool = isArchived === 'true';
             queryConditions.push({ isArchived: isArchivedBool });
+        }
+
+        if (isPreorder) {
+            const isPreorderBool = isPreorder === 'true';
+            queryConditions.push({ isPreorder: isPreorderBool });
         }
 
         if (queryConditions.length > 0) {
