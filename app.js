@@ -12,6 +12,7 @@ const userRoutes = require('./API/routes/users');
 const cardRoutes = require('./API/routes/cards');
 const otherProductRoutes = require('./API/routes/otherProducts');
 const configRoutes = require('./API/routes/config');
+const orderRoutes = require('./API/routes/orders');
 
 
 mongoose.connect(process.env.MONGO_URI);
@@ -51,6 +52,7 @@ app.use('/users', userRoutes);
 app.use('/cards', cardRoutes);
 app.use('/otherProducts', otherProductRoutes);
 app.use('/config', configRoutes);
+app.use('/orders', orderRoutes);
 
 
 app.use((req, res, next) => {

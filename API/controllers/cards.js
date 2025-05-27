@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
-const user = require('../models/user');
 const { scrapePrice, scrapePriceScraperAPI } = require('../utils/scraperUtils');
 
 

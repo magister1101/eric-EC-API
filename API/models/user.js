@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { type } = require('os');
 
 const userSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -11,6 +12,11 @@ const userSchema = mongoose.Schema({
 
     email: { type: String },
     file: { type: String },
+
+    cart: [{
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Card', required: true },
+        quantity: { type: Number, default: 1 }
+    }],
 
     isAdmin: { type: Boolean, default: false },
 

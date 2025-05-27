@@ -62,7 +62,9 @@ exports.getUser = async (req, res) => {
         }
 
         const users = await User.find(searchCriteria)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('cart.product', 'name price game code series rarity file isPreorder description');
+
 
         return res.status(200).json(users);
 
@@ -96,8 +98,9 @@ exports.getViewer = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
+        console.log(req.body);
         const existingUser = await User.find({
-            $or: [{ username: req.body.username }]
+            $or: [{ username: req.body.username }, { email: req.body.email }]
         });
 
         if (existingUser.length > 0) {
@@ -267,3 +270,34 @@ exports.updateUser = async (req, res, next) => {
         });
     }
 };
+
+exports.addToCart = async (req, res, next) => {
+
+    const userId = req.userData.userId
+    const { productId, quantity } = req.body
+
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(productId)) {
+        return res.status(400).json({ message: 'Invalid ID format' })
+    }
+
+    try {
+        const user = await User.findById(userId)
+
+        if (!user) return res.status(404).json({ message: 'User not found' })
+
+        const existingItem = user.cart.find(item => item.product.toString() === productId)
+
+        if (existingItem) {
+            existingItem.quantity += quantity || 1
+        } else {
+            user.cart.push({ product: productId, quantity: quantity || 1 })
+        }
+
+        await user.save()
+
+        res.status(200).json({ message: 'Item added to cart', cart: user.cart })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ message: 'Server error' })
+    }
+}

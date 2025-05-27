@@ -6,10 +6,10 @@ const cardSchema = mongoose.Schema({
     expansion: { type: String },
     game: { type: String },
 
-    name: { type: String, required: true },
-    code: { type: String, required: true },
-    series: { type: String, required: true },
-    rarity: { type: String, required: true },
+    name: { type: String },
+    code: { type: String },
+    series: { type: String },
+    rarity: { type: String },
 
     price: { type: Number },
     quantity: { type: Number },

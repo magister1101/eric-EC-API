@@ -15,6 +15,7 @@ router.post('/create', UsersController.createUser)
 router.post('/loginUser', UsersController.loginUser);
 router.post('/loginAdmin', UsersController.loginAdmin);
 router.post('/update/:userId', UsersController.updateUser);
+router.post('/addToCart', authentication, UsersController.addToCart)
 
 //PUT
 

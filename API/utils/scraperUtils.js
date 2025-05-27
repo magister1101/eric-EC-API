@@ -13,6 +13,7 @@ async function scrapePrice(url) {
                 'Referer': url,
             },
         });
+        console.log(data)
 
         const $ = cheerio.load(data);
 
