@@ -301,3 +301,35 @@ exports.addToCart = async (req, res, next) => {
         res.status(500).json({ message: 'Server error' })
     }
 }
+
+exports.removeFromCart = async (req, res, next) => {
+    try {
+        const userId = req.userData.userId
+        const { productId, quantity } = req.body
+
+        if (!productId || typeof quantity !== 'number') {
+            return res.status(400).json({ message: 'Product ID and quantity are required' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Find the cart item
+        const cartItemIndex = user.cart.findIndex(
+            (item) => item.product.toString() === productId && item.quantity === quantity
+        );
+
+        if (cartItemIndex === -1) {
+            return res.status(404).json({ message: 'Item not found in cart' });
+        }
+
+        // Remove item
+        user.cart.splice(cartItemIndex, 1);
+        await user.save();
+
+        res.status(200).json({ message: 'Item removed from cart successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
