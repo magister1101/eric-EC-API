@@ -120,7 +120,6 @@ exports.createCard = async (req, res) => {
 
 exports.updateCard = async (req, res) => {
     try {
-        console.log(req.body);
         const cardId = req.params.cardId;
         const updateFields = req.body;
 

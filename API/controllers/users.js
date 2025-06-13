@@ -98,7 +98,6 @@ exports.getViewer = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        console.log(req.body);
         const existingUser = await User.find({
             $or: [{ username: req.body.username }, { email: req.body.email }]
         });

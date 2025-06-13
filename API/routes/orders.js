@@ -11,6 +11,7 @@ router.get('/myOrders', authentication, ordersController.myOrders);
 
 //POST
 router.post('/createOrder', authentication, ordersController.createOrder);
+router.post('/updateOrder/:id', authentication, ordersController.updateOrder);
 
 
 module.exports = router;

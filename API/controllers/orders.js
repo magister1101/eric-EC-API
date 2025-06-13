@@ -25,7 +25,6 @@ exports.getOrders = async (req, res) => {
     try {
         const { query, isArchived, buyer, status } = req.query;
 
-        console.log('Buyer Query Param:', buyer);
 
         const escapeRegex = (value) => {
             return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

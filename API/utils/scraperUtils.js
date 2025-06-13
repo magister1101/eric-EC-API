@@ -13,7 +13,7 @@ async function scrapePrice(url) {
                 'Referer': url,
             },
         });
-        console.log(data)
+        // console.log(data)
 
         const $ = cheerio.load(data);
 
@@ -58,7 +58,7 @@ async function scrapePriceScraperAPI(url) {
         return ({ price: priceConverted, stock });
 
     } catch (error) {
-        console.log({ error: 'Failed to scrape price and stock' });
+        // console.log({ error: 'Failed to scrape price and stock' });
         return console.error('Scrape error:', error.message);
     }
 };
