@@ -15,6 +15,9 @@ router.get('/expansion/get', configController.getExpansion)
 //GAME
 router.get('/game/get', configController.getGame)
 
+//SYSTEM CONFIG
+router.get('/systemConfig/get', configController.getSystemConfig)
+
 
 //POST
 //RARITY

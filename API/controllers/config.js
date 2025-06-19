@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Expansion = require('../models/expansion');
 const Rarity = require('../models/rarity');
 const Game = require('../models/game');
+const SystemConfig = require('../models/systemConfig');
 
 const performUpdate = (id, updateFields, res, updateType) => {
     if (updateType === 'expansion') {
@@ -344,5 +345,69 @@ exports.updateGame = async (req, res) => {
     catch (error) {
         console.error(error.message);
         res.status(500).json('error in updateGame');
+    }
+};
+
+//system config
+
+exports.getSystemConfig = async (req, res) => {
+    try {
+        const { query } = req.query;
+
+        const escapeRegex = (value) => {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        };
+
+        let searchCriteria = {};
+        const queryConditions = [];
+
+        if (query) {
+            const escaped = escapeRegex(query);
+            const orConditions = [];
+
+            if (mongoose.Types.ObjectId.isValid(query)) {
+                orConditions.push({ _id: query });
+            }
+
+            orConditions.push(
+                { paymentMethodFile: { $regex: escaped, $options: 'i' } },
+            )
+
+            queryConditions.push({ $or: orConditions });
+        }
+
+        if (queryConditions.length > 0) {
+            searchCriteria = { $and: queryConditions };
+        }
+
+        const systemConfig = await SystemConfig.find(searchCriteria)
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json(systemConfig);
+
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in getSystemConfig');
+    }
+};
+
+exports.createSystemConfig = async (req, res) => {
+    try {
+        const id = new mongoose.Types.ObjectId();
+        const { paymentMethodFile, } = req.body;
+
+        const systemConfig = new SystemConfig({
+            _id: id,
+            paymentMethodFile,
+        });
+
+        const saveSystemConfig = await systemConfig.save();
+        return res.status(201).json(saveSystemConfig);
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json('error in createSystemConfig');
     }
 };

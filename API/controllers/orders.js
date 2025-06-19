@@ -111,7 +111,7 @@ exports.createOrder = async (req, res) => {
     try {
         console.log(req.body);
         const orderId = new mongoose.Types.ObjectId();
-        const { products, totalPrice, paymentMethod, isPickup, shippingAddress, shippingPrice } = req.body;
+        const { products, totalPrice, paymentMethod, isPickup, shippingAddress, shippingPrice, proofOfPayment } = req.body;
         const buyer = req.userData.userId;
 
         const order = new Order({
@@ -122,7 +122,8 @@ exports.createOrder = async (req, res) => {
             paymentMethod,
             isPickup,
             shippingAddress,
-            shippingPrice
+            shippingPrice,
+            proofOfPayment
         });
 
         const savedOrder = await order.save();
