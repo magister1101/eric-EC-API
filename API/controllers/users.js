@@ -332,3 +332,23 @@ exports.removeFromCart = async (req, res, next) => {
         res.status(500).json({ message: 'Server error' });
     }
 }
+
+exports.changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body
+        const user = await User.findById(req.userData.userId)
+
+        const match = await bcrypt.compare(currentPassword, user.password)
+        if (!match) {
+            return res.status(400).json({ message: 'Incorrect current password' })
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10)
+        user.password = hashed
+        await user.save()
+
+        res.json({ message: 'Password updated successfully' })
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating password', error })
+    }
+}
