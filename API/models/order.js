@@ -13,6 +13,7 @@ const orderSchema = mongoose.Schema({
     status: { type: String, default: 'pending' },
     paymentMethod: { type: String, required: true },
     proofOfPayment: { type: String },
+    fileUpdate: { type: String },
     isPickup: { type: Boolean, required: true },
     shippingAddress: { type: String },
     shippingPrice: { type: Number },
