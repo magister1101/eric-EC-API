@@ -17,6 +17,9 @@ const orderSchema = mongoose.Schema({
     isPickup: { type: Boolean, required: true },
     shippingAddress: { type: String },
     shippingPrice: { type: Number },
+
+    orderType: { type: String }, // type of order, order, preorder, claiming, mercari, etc.
+
     isArchived: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
