@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema({
     file: { type: String },
 
     cart: [{
-        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Card', required: true },
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
         quantity: { type: Number, default: 1 }
     }],
 

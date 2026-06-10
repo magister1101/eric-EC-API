@@ -63,7 +63,7 @@ exports.getUser = async (req, res) => {
 
         const users = await User.find(searchCriteria)
             .sort({ createdAt: -1 })
-            .populate('cart.product', 'name price game code series rarity file isPreorder description');
+            .populate('cart.product');
 
 
         return res.status(200).json(users);
