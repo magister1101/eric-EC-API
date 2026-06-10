@@ -1,0 +1,7 @@
+{
+  "env": {
+    "MONGO_URIJWT_SECRET": "mongodb+srv://aquaeris:aquaerisadmin0123@erisecommerce.eh1gbbo.mongodb.net/",
+    "JWT_SECRET": "ErisAquaSecretKey",
+    "SCRAPER_API_KEY": "6795f0a97e8fa9b21e3298781ca1c805"
+  }
+}

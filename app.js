@@ -1,3 +1,5 @@
+require('node:dns/promises').setServers(['1.1.1.1', '8.8.8.8']);
+
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
@@ -10,9 +12,12 @@ const dotenv = require('dotenv').config();
 //routes link
 const userRoutes = require('./API/routes/users');
 const cardRoutes = require('./API/routes/cards');
+const productRoutes = require('./API/routes/products');
 const otherProductRoutes = require('./API/routes/otherProducts');
 const configRoutes = require('./API/routes/config');
 const orderRoutes = require('./API/routes/orders');
+
+
 
 
 mongoose.connect(process.env.MONGO_URI);
@@ -50,6 +55,7 @@ app.use((req, res, next) => {
 // routes
 app.use('/users', userRoutes);
 app.use('/cards', cardRoutes);
+app.use('/products', productRoutes);
 app.use('/otherProducts', otherProductRoutes);
 app.use('/config', configRoutes);
 app.use('/orders', orderRoutes);

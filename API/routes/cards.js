@@ -10,7 +10,7 @@ router.get('/', cardsController.getCard)
 
 //POST
 
-router.post('/create', cardsController.createCard)
+router.post('/create', authentication, cardsController.createCard)
 router.post('/update/:cardId', cardsController.updateCard)
 router.post('/scrapePrice', cardsController.scrapePrice)
 
