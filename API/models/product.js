@@ -8,6 +8,12 @@ const productSchema = mongoose.Schema({
     quantity: { type: Number },   
     file: { type: String },
     description: { type: String },
+
+    // for preorder
+    isPreorder: { type: Boolean, default: false },
+    preorderDeadline: { type: Date },
+    downPayment: { type: Number },
+
     isArchived: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
 });

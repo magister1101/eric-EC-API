@@ -16,7 +16,11 @@ const orderSchema = mongoose.Schema({
     fileUpdate: { type: String },
     isPickup: { type: Boolean, required: true },
     store: { type: String },
-    shippingAddress: { type: String },
+    modeOfDelivery: { type: String },
+    shippingAddress: {
+    type: Object,
+    default: null
+    },
     shippingPrice: { type: Number },
 
     orderType: { type: String }, // type of order, order, preorder, claiming, mercari, etc.

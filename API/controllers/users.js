@@ -111,17 +111,8 @@ exports.createUser = async (req, res) => {
         const userId = new mongoose.Types.ObjectId();
         const user = new User({
             _id: userId,
-            username: req.body.username,
             password: hashedPassword,
-
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            middleName: req.body.middleName,
-
-            email: req.body.email,
-            file: req.body.file,
-
-            isArchived: req.body.isArchived,
+            ...req.body
         });
 
         const saveUser = await user.save();

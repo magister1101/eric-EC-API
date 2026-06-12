@@ -11,7 +11,7 @@ router.get('/', productsController.getProduct)
 //POST
 
 router.post('/create', authentication, productsController.createProduct)
-// router.post('/update/:cardId', authentication, productsController.updateProduct)
+router.post('/update/:id', authentication, productsController.updateProduct)
 
 //PUT
 

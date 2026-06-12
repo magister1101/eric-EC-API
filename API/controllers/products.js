@@ -1,6 +1,23 @@
 const mongoose = require('mongoose');
 const Product = require('../models/product');
 
+const performUpdate = (id, updateFields, res) => {
+    Product.findByIdAndUpdate(id, updateFields, { new: true })
+        .then((updatedData) => {
+            if (!updatedData) {
+                return ({ message: "Data not found" });
+            }
+            return updatedData;
+
+        })
+        .catch((err) => {
+            return ({
+                message: "Error in updating Data",
+                error: err
+            });
+        })
+};
+
 exports.getProduct = async (req, res) => {
     try {
         const { query, isArchived } = req.query;
@@ -66,5 +83,20 @@ exports.createProduct = async (req, res) => {
     catch (error) {
         console.error(error.message);
         res.status(500).json('error in createProduct');
+    }
+};
+
+exports.updateProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const updateFields = req.body;
+
+        const updatedProduct = performUpdate(productId, updateFields, res);
+        return res.status(200).json(updatedProduct)
+
+    }
+    catch (error) {
+        console.error(error.message);
+        res.status(500).json({error: 'error in updateProduct', message: error.message}); 
     }
 };

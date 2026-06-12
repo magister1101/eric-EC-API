@@ -12,6 +12,20 @@ const userSchema = mongoose.Schema({
     email: { type: String },
     file: { type: String },
 
+    addresses: [
+        {
+            label: { type: String }, // e.g. "Home", "Office"
+            additionalInformation: { type: String },
+            street: { type: String },
+            barangay: { type: String },
+            city: { type: String },
+            province: { type: String },
+            postalCode: { type: String },
+            country: { type: String, default: 'Philippines' },
+
+            isDefault: { type: Boolean, default: false }
+        }
+    ],
     cart: [{
         product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
         quantity: { type: Number, default: 1 }
