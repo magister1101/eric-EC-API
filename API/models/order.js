@@ -5,7 +5,7 @@ const orderSchema = mongoose.Schema({
     buyer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     products: [
         {
-            product: { type: mongoose.Schema.Types.ObjectId, ref: 'Card', required: true },
+            product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
             quantity: { type: Number, required: true }
         }
     ],
