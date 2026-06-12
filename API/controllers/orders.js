@@ -87,7 +87,7 @@ exports.myOrders = async (req, res) => {
         const buyer = req.userData.userId;
 
         const orders = await Order.find({ buyer })
-            .populate('products.product', 'name price rarity series code file')
+            .populate('products.product', 'name des file price')
             .populate('buyer', 'username firstName lastName middleName email');
 
 
@@ -111,7 +111,7 @@ exports.createOrder = async (req, res) => {
     try {
         console.log(req.body);
         const orderId = new mongoose.Types.ObjectId();
-        const { products, totalPrice, paymentMethod, isPickup, shippingAddress, shippingPrice, proofOfPayment } = req.body;
+        const { products, totalPrice, paymentMethod, isPickup, store, shippingAddress, shippingPrice, proofOfPayment } = req.body;
         const buyer = req.userData.userId;
 
         const order = new Order({
@@ -121,6 +121,7 @@ exports.createOrder = async (req, res) => {
             totalPrice,
             paymentMethod,
             isPickup,
+            store,
             shippingAddress,
             shippingPrice,
             proofOfPayment

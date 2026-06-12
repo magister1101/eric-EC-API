@@ -15,6 +15,7 @@ const orderSchema = mongoose.Schema({
     proofOfPayment: { type: String },
     fileUpdate: { type: String },
     isPickup: { type: Boolean, required: true },
+    store: { type: String },
     shippingAddress: { type: String },
     shippingPrice: { type: Number },
 
